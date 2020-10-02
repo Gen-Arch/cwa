@@ -23,7 +23,7 @@ module CWA
     option :namespace
     option :dimensions
     def alarms
-      alms  = output_alms
+      alms  = _output_alms
       head  = alms.first.keys
       rows  = alms.map{|alm| alm.values }
       table = Terminal::Table.new :headings => head, :rows => rows
@@ -38,15 +38,16 @@ module CWA
     def enable
       cwa  = CWA.get
       alms = cwa.alarms(options)
-      alms = check_alm(alms, :enable)
+      alms = _check_alm(alms, :enable)
 
       exit(0) if alms.empty?
-      confirm("cloudwatch alarm enable?")
+      _confirm("cloudwatch alarm enable?")
 
       alms.each do |alm|
         cwa.enable(alm)
         puts "#{'done'.colorize(:green)} => #{alm[:alarm_name]}"
       end
+      puts
       alarms
     end
 
@@ -57,21 +58,22 @@ module CWA
     def disable
       cwa  = CWA.get
       alms = cwa.alarms(options)
-      alms = check_alm(alms, :disable)
+      alms = _check_alm(alms, :disable)
 
       exit(0) if alms.empty?
-      confirm("cloudwatch alarm disable?")
+      _confirm("cloudwatch alarm disable?")
 
       alms.each do |alm|
         cwa.disable(alm)
         puts "#{'done'.colorize(:green)} => #{alm[:alarm_name]}"
       end
+      puts
       alarms
     end
 
     private
 
-    def output_alms
+    def _output_alms
       cwa  = CWA.get
       alms = cwa.alarms(options)
 
@@ -84,7 +86,7 @@ module CWA
       end
     end
 
-    def check_alm(alms, mode)
+    def _check_alm(alms, mode)
       check = false if mode == :enable
       check = true  if mode == :disable
       alms.map do |alm|
@@ -103,7 +105,7 @@ module CWA
       end.compact
     end
 
-    def confirm(check_word, **opt)
+    def _confirm(check_word, **opt)
       true_word  = ( opt[:true] || /yes|y/ )
       false_word = ( opt[:false] || /no/ )
 

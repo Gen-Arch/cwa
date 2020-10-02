@@ -30,7 +30,6 @@ module CWA
     private
     def _dimension?(alms, dimensions)
       dimensions = _parse_dimensions(dimensions) if dimensions.is_a?(String)
-      pp dimensions.keys
       alms.select do |alm|
         alm.dimensions.any? do |dims|
           dimensions.keys.any?(dims.name) && dimensions.values.any?(dims.value)
