@@ -12,15 +12,18 @@ module CWA
       @alms ||= @client.describe_alarms(opts)
     end
 
-    def filter(**query)
+    def filter(query)
+      pp query
       alms = alarms.metric_alarms
 
       # querys
-      name_query       = ->(alm) { alm.alarm_name == query[:name]      }
-      namespace_query  = ->(alm) { alm.namespace  == query[:namespace] }
+      name_query       = ->(alm) { alm.alarm_name == query[:name]           }
+      ambiguous_query  = ->(alm) { alm.alarm_name =~ /#{query[:ambiguous]}/ }
+      namespace_query  = ->(alm) { alm.namespace  == query[:namespace]      }
 
-      alms = alms.select(&name_query)              if query[:name]
-      alms = alms.select(&namespace_query)         if query[:namespace]
+      alms = alms.select(&name_query)              if query[:name      ]
+      alms = alms.select(&ambiguous_query)         if query[:ambiguous ]
+      alms = alms.select(&namespace_query)         if query[:namespace ]
       alms = _dimension?(alms, query[:dimensions]) if query[:dimensions]
       alms
     end

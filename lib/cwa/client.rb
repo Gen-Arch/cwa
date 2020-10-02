@@ -9,9 +9,9 @@ module CWA
       @client = Aws::CloudWatch::Client.new(opts)
     end
 
-    def alarms(**query)
+    def alarms(query)
       @alarms ||= Alarms.new(@client)
-      alms      = @alarms.filter(**query)
+      alms      = @alarms.filter(query)
       if block_given?
         alms.each{|alm| yield alm }
       end
