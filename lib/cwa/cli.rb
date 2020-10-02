@@ -3,7 +3,6 @@ require 'thor'
 require 'terminal-table'
 require 'colorize'
 
-
 OUTPUT_KEYS = [
   :namespace,
   :alarm_name,
@@ -72,7 +71,6 @@ module CWA
     end
 
     private
-
     def _output_alms
       cwa  = CWA.get
       alms = cwa.alarms(options)

@@ -28,6 +28,11 @@ module CWA
     end
 
     private
+    def _alarms(**opts)
+      opts[:alarm_name_prefix] = "*" unless opts
+      @alms ||= @client.describe_alarms(opts)
+    end
+
     def _dimension?(alms, dimensions)
       dimensions = _parse_dimensions(dimensions) if dimensions.is_a?(String)
       alms.select do |alm|
@@ -47,11 +52,6 @@ module CWA
       end
 
       dims
-    end
-
-    def _alarms(**opts)
-      opts[:alarm_name_prefix] = "*" unless opts
-      @alms ||= @client.describe_alarms(opts)
     end
   end
 end
