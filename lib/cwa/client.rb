@@ -18,6 +18,10 @@ module CWA
       alms
     end
 
+    def refresh
+      @alarms.refresh
+    end
+
     def enable(alm)
       alm = alm[:alarm_name]
       @client.enable_alarm_actions({alarm_names: [alm] })

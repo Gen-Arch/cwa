@@ -7,14 +7,8 @@ module CWA
       @client = client
     end
 
-    def alarms(**opts)
-      opts[:alarm_name_prefix] = "*" unless opts
-      @alms ||= @client.describe_alarms(opts)
-    end
-
     def filter(query)
-      pp query
-      alms = alarms.metric_alarms
+      alms = _alarms.metric_alarms
 
       # querys
       name_query       = ->(alm) { alm.alarm_name == query[:name]           }
@@ -30,16 +24,35 @@ module CWA
 
     def refresh
       @alms = nil
-      alarms
+      _alarms
     end
 
     private
     def _dimension?(alms, dimensions)
+      dimensions = _parse_dimensions(dimensions) if dimensions.is_a?(String)
+      pp dimensions.keys
       alms.select do |alm|
         alm.dimensions.any? do |dims|
-          dimensions.keys.any?(dims.name.to_sym) && dimensions.values.any?(dims.value)
+          dimensions.keys.any?(dims.name) && dimensions.values.any?(dims.value)
         end
       end
+    end
+
+    def _parse_dimensions(str)
+      dims = Hash.new
+      str  = str.split(",")
+
+      str.each do |d|
+        k, v = d.split(":")
+        dims[k] = v
+      end
+
+      dims
+    end
+
+    def _alarms(**opts)
+      opts[:alarm_name_prefix] = "*" unless opts
+      @alms ||= @client.describe_alarms(opts)
     end
   end
 end
