@@ -1,4 +1,5 @@
 # CWA
+cloudwatch alarms cli tool
 
 ## Installation
 
