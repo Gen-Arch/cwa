@@ -12,62 +12,84 @@ OUTPUT_KEYS = [
   :alarm_description,
 ]
 
+OPTIONS = "--name ALARMNAME --regexp ALARMNAME --namespae NAMESPACE --dimensions KEY:VALUE"
+
 module CWA
   class Cli < Thor
-    class_option :verbose, :type => :boolean
+    class_option    :verbose, :type => :boolean
 
-    desc "alams   --name ALARMNAME --ambiguous ALARMNAME --namespae NAMESPACE --dimensions KEY:VALUE", "show cloudwatch alms"
-    option :name
-    option :ambiguous
-    option :namespace
-    option :dimensions
+    desc "alarms  #{OPTIONS}", "show cloudwatch alms"
+    option :name,       type: :string, aliases: "n"
+    option :namespace,  type: :string, aliases: "s"
+    option :regexp,     type: :string, aliases: "r"
+    option :dimensions, type: :hash,   aliases: "d"
+    #option ambiguous: :string
     def alarms
-      alms  = _output_alms
-      head  = alms.first.keys
-      rows  = alms.map{|alm| alm.values }
-      table = Terminal::Table.new :headings => head, :rows => rows
+      begin
+        alms  = _output_alms
+        raise "not alarms" if alms.empty?
 
-      puts table
+        head  = alms.first.keys
+        rows  = alms.map{|alm| alm.values }
+        table = Terminal::Table.new :headings => head, :rows => rows
+
+        puts table
+      rescue => err
+        puts "error => #{err}".colorize(:red)
+        exit 1
+      end
     end
 
-    desc "enable  --name ALARMNAME --namespae NAMESPACE --dimensions NAME:VALUE", "enable cloudwatch alms"
-    option :name
-    option :namespace
-    option :dimensions
+    desc "enable  #{OPTIONS}", "enable cloudwatch alms"
+    option :name,       type: :string, aliases: "n"
+    option :namespace,  type: :string, aliases: "s"
+    option :regexp,     type: :string, aliases: "r"
+    option :dimensions, type: :hash,   aliases: "d"
     def enable
-      cwa  = CWA.get
-      alms = cwa.alarms(options)
-      alms = _check_alm(alms, :enable)
+      begin
+        cwa  = CWA.get
+        alms = cwa.alarms(options)
+        alms = _check_alm(alms, :enable)
 
-      exit(0) if alms.empty?
-      _confirm("cloudwatch alarm enable?")
+        raise "not alarms" if alms.empty?
+        _confirm("cloudwatch alarm enable?")
 
-      alms.each do |alm|
-        cwa.enable(alm)
-        puts "#{'done'.colorize(:green)} => #{alm[:alarm_name]}"
+        alms.each do |alm|
+          cwa.enable(alm)
+          puts "#{'done'.colorize(:green)} => #{alm[:alarm_name]}"
+        end
+        puts
+        alarms
+      rescue => err
+        puts "error => #{err}".colorize(:red)
+        exit 1
       end
-      puts
-      alarms
     end
 
-    desc "disable --name ALARMNAME --namespae NAMESPACE --dimensions KEY:VALUE", "disable cloudwatch alms"
-    option :name
-    option :namespace
-    option :dimensions
+    desc "disable #{OPTIONS}", "disable cloudwatch alms"
+    option :name,       type: :string, aliases: "n"
+    option :namespace,  type: :string, aliases: "s"
+    option :regexp,     type: :string, aliases: "r"
+    option :dimensions, type: :hash,   aliases: "d"
     def disable
-      cwa  = CWA.get
-      alms = cwa.alarms(options)
-      alms = _check_alm(alms, :disable)
+      begin
+        cwa  = CWA.get
+        alms = cwa.alarms(options)
+        alms = _check_alm(alms, :disable)
 
-      exit(0) if alms.empty?
-      _confirm("cloudwatch alarm disable?")
+        raise "not alarms" if alms.empty?
+        _confirm("cloudwatch alarm disable?")
 
-      alms.each do |alm|
-        cwa.disable(alm)
-        puts "#{'done'.colorize(:green)} => #{alm[:alarm_name]}"
+        alms.each do |alm|
+          cwa.disable(alm)
+          puts "#{'done'.colorize(:green)} => #{alm[:alarm_name]}"
+        end
+        puts
+        alarms
+      rescue => err
+        puts "error => #{err}".colorize(:red)
+        exit 1
       end
-      puts
-      alarms
     end
 
     private
