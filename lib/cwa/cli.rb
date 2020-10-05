@@ -2,6 +2,11 @@ require 'cwa'
 require 'thor'
 require 'terminal-table'
 require 'colorize'
+require 'yaml'
+require 'fileutils'
+
+ASSUME_DIR  = File.join(Dir.home,   '.config', 'cwa')
+ASSUME_FILE = File.join(ASSUME_DIR, 'assume.yml')
 
 OUTPUT_KEYS = %i(
   namespace
@@ -22,9 +27,10 @@ OPTIONS = "--name ALARMNAME --regexp ALARMNAME --namespae NAMESPACE --dimensions
 
 module CWA
   class Cli < Thor
-    class_option :verbose, type: :boolean
-    class_option :profile, type: :string
-    class_option :region,  type: :string
+    class_option :verbose,      type: :boolean
+    class_option :profile,      type: :string
+    class_option :region,       type: :string
+    class_option :assume_role,  type: :string
 
     desc "alarms  #{OPTIONS}", "show cloudwatch alms"
     option :name,       type: :string, aliases: "n"
@@ -33,6 +39,8 @@ module CWA
     option :dimensions, type: :hash,   aliases: "d"
     def alarms
       begin
+        _enable_assume if options[:assume_role]
+
         alms  = _output_alms
         raise "not alarms" if alms.empty?
 
@@ -54,6 +62,8 @@ module CWA
     option :dimensions, type: :hash,   aliases: "d"
     def enable
       begin
+        _enable_assume if options[:assume_role]
+
         cwa  = CWA.get(options)
         alms = cwa.alarms(options)
         alms = _check_alm(alms, :enable)
@@ -80,6 +90,8 @@ module CWA
     option :dimensions, type: :hash,   aliases: "d"
     def disable
       begin
+        _enable_assume if options[:assume_role]
+
         cwa  = CWA.get(options)
         alms = cwa.alarms(options)
         alms = _check_alm(alms, :disable)
@@ -99,6 +111,30 @@ module CWA
       end
     end
 
+    desc "configure", "create config files"
+    def configure
+      configs     = %w(assume_role)
+
+      puts configs
+      print "create type? : "
+      type = $stdin.gets.strip
+      case type
+      when 'assume_role'
+        print "name?         : "
+        name    = $stdin.gets.strip
+        print "arn?          : "
+        arn     = $stdin.gets.strip
+        print "session_name? : "
+        session = $stdin.gets.strip
+
+        assume = {name => { arn: arn, session_name: session}}
+        FileUtils.mkdir_p(ASSUME_DIR) unless Dir.exist?(ASSUME_DIR)
+        file = open(ASSUME_FILE, "w")
+        YAML.dump(assume, file)
+        puts "create => #{ASSUME_FILE.colorize(:yellow)}"
+      end
+    end
+
     private
     def _output_alms
       cwa  = CWA.get(options)
@@ -111,6 +147,12 @@ module CWA
         end
         v
       end
+    end
+
+    def _enable_assume
+      raise 'not config file, pls "cwa configure"' unless File.exist?(ASSUME_FILE)
+      assume = YAML.load_file(ASSUME_FILE)[options[:assume_role]]
+      CWA.assume_role(assume)
     end
 
     def _check_alm(alms, mode)
