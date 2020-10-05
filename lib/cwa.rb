@@ -12,8 +12,8 @@ module CWA
 
     def get(opts = {})
       @aws_opts         ||= {}
-      @aws_opts[:profile] = opts.delete(:profile) if opts[:profile]
-      @aws_opts[:region]  = opts.delete(:profile) if opts[:region]
+      @aws_opts[:profile] = opts[:profile] if opts[:profile]
+      @aws_opts[:region]  = opts[:region ] if opts[:region]
 
       Client.new(@aws_opts)
     end
