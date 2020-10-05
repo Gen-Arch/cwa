@@ -9,8 +9,11 @@ module CWA
       @aws_opts = opts
     end
 
-    def get
-      @aws_opts = {} unless @aws_opts
+    def get(opts = {})
+      @aws_opts         ||= {}
+      @aws_opts[:profile] = opts[:profile] if opts[:profile]
+      @aws_opts[:region]  = opts[:profile] if opts[:region]
+
       Client.new(@aws_opts)
     end
   end

@@ -3,27 +3,34 @@ require 'thor'
 require 'terminal-table'
 require 'colorize'
 
-OUTPUT_KEYS = [
-  :namespace,
-  :alarm_name,
-  :actions_enabled,
-  :dimensions,
-  :alarm_arn,
-  :alarm_description,
-]
+OUTPUT_KEYS = %i(
+  namespace
+  alarm_name
+  actions_enabled
+  dimensions
+  alarm_arn
+  alarm_description
+)
+
+
+AWS_OPTIONS = %i(
+  profile
+  region
+)
 
 OPTIONS = "--name ALARMNAME --regexp ALARMNAME --namespae NAMESPACE --dimensions KEY:VALUE"
 
 module CWA
   class Cli < Thor
-    class_option    :verbose, :type => :boolean
+    class_option :verbose, type: :boolean
+    class_option :profile, type: :string
+    class_option :region,  type: :string
 
     desc "alarms  #{OPTIONS}", "show cloudwatch alms"
     option :name,       type: :string, aliases: "n"
     option :namespace,  type: :string, aliases: "s"
     option :regexp,     type: :string, aliases: "r"
     option :dimensions, type: :hash,   aliases: "d"
-    #option ambiguous: :string
     def alarms
       begin
         alms  = _output_alms
@@ -47,7 +54,7 @@ module CWA
     option :dimensions, type: :hash,   aliases: "d"
     def enable
       begin
-        cwa  = CWA.get
+        cwa  = CWA.get(options)
         alms = cwa.alarms(options)
         alms = _check_alm(alms, :enable)
 
@@ -73,7 +80,7 @@ module CWA
     option :dimensions, type: :hash,   aliases: "d"
     def disable
       begin
-        cwa  = CWA.get
+        cwa  = CWA.get(options)
         alms = cwa.alarms(options)
         alms = _check_alm(alms, :disable)
 
@@ -94,7 +101,7 @@ module CWA
 
     private
     def _output_alms
-      cwa  = CWA.get
+      cwa  = CWA.get(options)
       alms = cwa.alarms(options)
 
       alms.map do |alm|
