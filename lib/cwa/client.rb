@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-cloudwatch'
-require "cwa/alarms"
+require 'cwa/alarms'
 
 module CWA
+  # AWS client class
   class Client
     class Error < StandardError; end
 
@@ -12,9 +15,7 @@ module CWA
     def alarms(query)
       @alarms ||= Alarms.new(@client)
       alms      = @alarms.filter(query)
-      if block_given?
-        alms.each{|alm| yield alm }
-      end
+      alms.each { |alm| yield alm } if block_given?
       alms
     end
 
@@ -24,12 +25,12 @@ module CWA
 
     def enable(alm)
       alm = alm[:alarm_name]
-      @client.enable_alarm_actions({alarm_names: [alm] })
+      @client.enable_alarm_actions({ alarm_names: [alm] })
     end
 
     def disable(alm)
       alm = alm[:alarm_name]
-      @client.disable_alarm_actions({alarm_names: [alm] })
+      @client.disable_alarm_actions({ alarm_names: [alm] })
     end
   end
 end

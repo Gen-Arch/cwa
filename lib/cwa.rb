@@ -1,7 +1,13 @@
-require 'aws-sdk-core'
-require "cwa/client"
-require "cwa/version"
+# frozen_string_literal: true
 
+require 'aws-sdk-core'
+require 'cwa/client'
+require 'cwa/version'
+
+#--
+# Copyright (c) 2021 Ito Toshifumi
+# cloudwatch alarm cli
+#++
 module CWA
   class Error < StandardError; end
 
@@ -13,7 +19,7 @@ module CWA
     def get(opts = {})
       @aws_opts         ||= {}
       @aws_opts[:profile] = opts[:profile] if opts[:profile]
-      @aws_opts[:region]  = opts[:region ] if opts[:region]
+      @aws_opts[:region]  = opts[:region]  if opts[:region]
 
       Client.new(@aws_opts)
     end
