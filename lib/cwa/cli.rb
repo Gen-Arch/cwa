@@ -5,12 +5,19 @@ require 'thor'
 require 'terminal-table'
 require 'colorize'
 require 'yaml'
+require 'json'
 require 'fileutils'
 
 ASSUME_DIR  = File.join(Dir.home,   '.config', 'cwa').freeze
 ASSUME_FILE = File.join(ASSUME_DIR, 'assume.yml').freeze
 
 OUTPUT_KEYS = %i[
+  namespace
+  alarm_name
+  actions_enabled
+].freeze
+
+OUTPUT_KEYS_DETAIL = %i[
   namespace
   alarm_name
   actions_enabled
@@ -35,6 +42,7 @@ module CWA
     class_option :profile,      type: :string
     class_option :region,       type: :string
     class_option :assume_role,  type: :string
+    class_option :output,       type: :string
 
     desc "alarms  #{OPTIONS}", 'show cloudwatch alms'
     option :name,       type: :string, aliases: 'n'
@@ -47,11 +55,18 @@ module CWA
       alms  = output_alms
       raise 'not alarms' if alms.empty?
 
-      head  = alms.first.keys
-      rows  = alms.map{|alm| alm.values }
-      table = Terminal::Table.new :headings => head, :rows => rows
 
-      puts table
+      case options[:output]
+      when 'json'
+        puts JSON.dump(alms)
+      when 'yaml'
+        puts YAML.dump(alms)
+      else
+        head  = alms.first.keys
+        rows  = alms.map{|alm| alm.values }
+        table = Terminal::Table.new :headings => head, :rows => rows
+        puts table
+      end
     end
 
     desc "enable  #{OPTIONS}", 'enable cloudwatch alms'
@@ -144,10 +159,12 @@ module CWA
     def output_alms
       cwa  = CWA.get(options)
       alms = cwa.alarms(options)
+      keys = OUTPUT_KEYS
+      keys = OUTPUT_KEYS_DETAIL if options[:verbose]
 
       alms.map do |alm|
         v = Hash.new
-        OUTPUT_KEYS.each do |key|
+        keys.each do |key|
           v[key] = alm.method(key).call
         end
         v
