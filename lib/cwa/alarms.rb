@@ -45,9 +45,11 @@ module CWA
         @alms     << alms
 
         while next_token
-          alms       = @client.describe_alarms(opts)
-          next_token = alms.next_token
-          @alms     << alms
+          opts[:next_token] = next_token
+          alms              = @client.describe_alarms(opts)
+          next_token        = alms.next_token
+
+          @alms << alms
         end
       end
 
