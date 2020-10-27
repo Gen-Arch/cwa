@@ -21,10 +21,10 @@ module CWA
       regexp_query     = ->(alm) { alm.alarm_name =~ /#{query[:regexp]}/ }
       namespace_query  = ->(alm) { alm.namespace  == query[:namespace]   }
 
-      @alms = alms.select(&name_query)             if query[:name      ]
-      @alms = alms.select(&regexp_query)           if query[:regexp    ]
-      @alms = alms.select(&namespace_query)        if query[:namespace ]
-      @alms = dimension?(alms, query[:dimensions]) if query[:dimensions]
+      @alms = @alms.select(&name_query)             if query[:name      ]
+      @alms = @alms.select(&regexp_query)           if query[:regexp    ]
+      @alms = @alms.select(&namespace_query)        if query[:namespace ]
+      @alms = dimension?(@alms, query[:dimensions]) if query[:dimensions]
 
       @alms
     end
